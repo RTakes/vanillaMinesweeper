@@ -6,10 +6,8 @@ var VanillaMinsweeper = function(opt){
   this.bombCount = Math.floor((this.width * this.height) / (this.difficulty*10)); //refactor for percentage
   this.board = [];
   this.gameStateActive = true;
-
   //initialize the game
   this.newGame();
-
 };
 
 VanillaMinsweeper.prototype.makeBoard = function(){
@@ -37,30 +35,27 @@ VanillaMinsweeper.prototype.makeBoard = function(){
   this.board = board;
 };
 
-VanillaMinsweeper.prototype.countAdjacentBombs = function(board, x, y){
-  var bombCount = 0;
+//X,Y are mixed up somewhere
+VanillaMinsweeper.prototype.walkAdjacent = function(x, y, callback){
 
   var posCheck = [
     [x-1, y],
     [x-1, y-1],
     [x-1, y+1],
-    [x, y-1],
-    [x, y+1],
+    [x,   y-1],
+    [x,   y+1],
     [x+1, y],
     [x+1, y+1],
     [x+1, y-1] 
   ];
 
   for(var i = 0; i<posCheck.length; i++){
-    if(posCheck[i][1]>=0 && posCheck[i][0]>=0 && posCheck[i][0]<= board[0].length-1 && posCheck[i][1]<= board.length-1){
-      if(board[posCheck[i][1]][posCheck[i][0]] === -1){
-        bombCount++;
-      }
+    if(posCheck[i][1]>=0 && posCheck[i][0]>=0 && posCheck[i][0]<= this.board[0].length-1 && posCheck[i][1]<= this.board.length-1){    
+      callback(posCheck[i], this.board[posCheck[i][1]][posCheck[i][0]]);
     }
   }
-
-  return bombCount;
 };
+
 
 VanillaMinsweeper.prototype.displayBoard = function(){
   if(document.getElementById('ms-board')){
@@ -81,7 +76,16 @@ VanillaMinsweeper.prototype.displayBoard = function(){
 
 
       if(this.board[bRows][bSquares] === undefined){
-        text = this.countAdjacentBombs(this.board, bSquares, bRows);
+        var adjacentBombs = 0;
+
+        this.walkAdjacent(bSquares, bRows, function(coords, val){
+          if(val === -1){
+            adjacentBombs++;
+          }
+        });
+
+        this.board[bRows][bSquares] = adjacentBombs;
+        text = adjacentBombs;
       }
 
       square.setAttribute('data-adjbombs', text);
@@ -112,13 +116,42 @@ VanillaMinsweeper.prototype.displayBoard = function(){
       }else{
         me.toggleSquare(e.target);
       }
- });
+  });
 
   document.getElementById(this.tag).appendChild(table);
+
+  //debugging
+  document.getElementById('debug').addEventListener('click', function(e) { 
+    var squares = document.getElementsByTagName('td');
+    for(var i=0; i<squares.length; i++){
+      me.toggleSquare(squares[i]);
+    }
+  });
 };
 
 VanillaMinsweeper.prototype.toggleSquare = function(square){
+  var coords = square.dataset.position.split(',');
+  
+  square.classList.add('revealed');
   square.innerHTML = square.dataset.adjbombs;
+
+  //Reveal empty parts of board
+  if(this.board[parseInt(coords[0])][parseInt(coords[1])] === 0){
+    var me = this; //set 'this' context
+
+    this.walkAdjacent(parseInt(coords[0]), parseInt(coords[1]), function(xy, val){
+
+      //Reversed in walkAdjacent function
+      var x = parseInt(xy[1]);
+      var y = parseInt(xy[0]);
+
+      var nextSquare = document.getElementsByTagName('td').item((me.width*x)+y);
+
+      if(val === 0 && !nextSquare.classList.contains('revealed')){
+        me.toggleSquare(nextSquare);
+      }
+    });
+  }
 };
 
 VanillaMinsweeper.prototype.newGame = function(){

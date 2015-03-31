@@ -89,5 +89,10 @@ table{
     background-color: red;
   }
 
+   table td:active, table td.revealed{
+    border: 2px dotted #e0dede;
+    background: #f2f2f2;
+   }
+
 
 
