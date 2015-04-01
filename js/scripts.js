@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-	var game = new VanillaMinsweeper({
+	var game = new VanillaMinesweeper({
 		tag  : 'board'
 
 	});

@@ -1,4 +1,4 @@
-var VanillaMinsweeper = function(opt){
+var VanillaMinesweeper = function(opt){
   this.tag = opt.tag || 'body';
   this.width = opt.width || 10;
   this.height = opt.height || 10;
@@ -10,7 +10,7 @@ var VanillaMinsweeper = function(opt){
   this.newGame();
 };
 
-VanillaMinsweeper.prototype.makeBoard = function(){
+VanillaMinesweeper.prototype.makeBoard = function(){
 
   var board = new Array(this.height);
 
@@ -36,7 +36,7 @@ VanillaMinsweeper.prototype.makeBoard = function(){
 };
 
 //X,Y are mixed up somewhere
-VanillaMinsweeper.prototype.walkAdjacent = function(x, y, callback){
+VanillaMinesweeper.prototype.walkAdjacent = function(x, y, callback){
 
   var posCheck = [
     [x-1, y],
@@ -57,7 +57,7 @@ VanillaMinsweeper.prototype.walkAdjacent = function(x, y, callback){
 };
 
 
-VanillaMinsweeper.prototype.displayBoard = function(){
+VanillaMinesweeper.prototype.displayBoard = function(){
   if(document.getElementById('ms-board')){
     var el = document.getElementById('ms-board');
     el.parentNode.removeChild(el);
@@ -97,26 +97,14 @@ VanillaMinsweeper.prototype.displayBoard = function(){
   }
 
   var me = this;
-
-  table.addEventListener('click', function(e) {
-
-      if(!me.gameStateActive){
-        return false;
-      }
-
-      if(e.altKey){
-        e.target.classList.toggle('flagged');
-        return;
-      }
-      var sqrValue = e.target.dataset.adjbombs;
-
-      if(parseInt(sqrValue) === -1){
-        me.gameStateActive = false;
-        alert('game over');
-      }else{
-        me.toggleSquare(e.target);
-      }
+  table.addEventListener('click', function(e){
+    me.squareClick(e);
   });
+
+  table.addEventListener('contextmenu', function(e){
+    me.squareClick(e);
+  });
+
 
   document.getElementById(this.tag).appendChild(table);
 
@@ -129,7 +117,7 @@ VanillaMinsweeper.prototype.displayBoard = function(){
   });
 };
 
-VanillaMinsweeper.prototype.toggleSquare = function(square){
+VanillaMinesweeper.prototype.toggleSquare = function(square){
   var coords = square.dataset.position.split(',');
   
   square.classList.add('revealed');
@@ -154,15 +142,41 @@ VanillaMinsweeper.prototype.toggleSquare = function(square){
   }
 };
 
-VanillaMinsweeper.prototype.newGame = function(){
+VanillaMinesweeper.prototype.newGame = function(){
   this.gameStateActive = true;
   this.makeBoard();
   this.displayBoard();
 };
 
+VanillaMinesweeper.prototype.squareClick = function(e){
+  e.preventDefault();
 
+  if(!this.gameStateActive){
+    return false;
+  }
 
+  if(e.type==="contextmenu"){
+    e.target.classList.toggle('flagged');
+    return;
+  }
 
+  var sqrValue = e.target.dataset.adjbombs;
+
+  if(parseInt(sqrValue) === -1){
+    this.gameStateActive = false;
+    alert('game over');
+  }else{
+    this.toggleSquare(e.target);
+  }
+};
+
+VanillaMinesweeper.prototype.loseGame = function(){
+  //Lose conditions: click bomb
+};
+
+VanillaMinesweeper.prototype.winGame = function(){
+  //Win conditions: Only bombs left, all bombs flagged
+};
 
 
 
